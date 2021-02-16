@@ -73,9 +73,9 @@ done
 
 # Get results
 if ! grep -qi aws $CFG; then
-    gsutil -qm cp ${ELB_RESULTS}/*.out.gz .
+    gsutil -qm cp ${elb_results}/*.out.gz .
 else
-    aws s3 cp ${ELB_RESULTS}/ . --recursive --exclude '*' --include "*.out.gz" --exclude '*/*' --only-show-errors
+    aws s3 cp ${elb_results}/ . --recursive --exclude '*' --include "*.out.gz" --exclude '*/*' --only-show-errors
 fi
 
 # Test results
