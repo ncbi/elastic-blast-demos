@@ -16,6 +16,7 @@ set -euo pipefail
 # All ElasticBLAST configuration settings are specified in the config file
 CFG=${1}
 timeout_minutes=${2:-5}
+logfile=${3:-"elastic-blast.log"}
 set +e
 elb_results=`printenv ELB_RESULTS`
 set -e
@@ -25,7 +26,6 @@ fi
 
 DRY_RUN=''
 #DRY_RUN=--dry-run     # uncomment for debugging
-logfile=elastic-blast.log
 rm -f $logfile
 
 get_num_cores() {
