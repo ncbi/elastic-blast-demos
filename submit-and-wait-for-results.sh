@@ -64,7 +64,7 @@ while [ $attempts -lt $timeout_minutes ]; do
     if grep '^Pending 0' $TMP && grep '^Running 0' $TMP; then
         break
     fi
-    attempt=$((attempts+1))
+    attempts=$(($attempts+1))
     sleep 60
     #set -e
 done
