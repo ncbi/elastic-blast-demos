@@ -79,6 +79,10 @@ else
 fi
 
 # Test results
-test $(du -a *.out.gz | sort -n | head -n 1 | cut -f 1) -gt 0
-find . -name "batch*.out.gz" -type f -print0 | xargs -0 -P $NTHREADS  -I{} gzip -t {}
+if compgen -G "batch*.out.gz" 2>/dev/null ; then
+    test $(du -a *.out.gz | sort -n | head -n 1 | cut -f 1) -gt 0
+    find . -name "batch*.out.gz" -type f -print0 | xargs -0 -P $NTHREADS  -I{} gzip -t {}
+else
+    echo "ElasticBLAST produced no results"
+fi
 elastic-blast delete --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
