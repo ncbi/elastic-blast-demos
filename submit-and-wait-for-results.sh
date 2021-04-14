@@ -79,7 +79,7 @@ else
 fi
 
 # Test results
-if compgen -G "batch*.out.gz" 2>/dev/null ; then
+if compgen -G "batch*.out.gz" >/dev/null ; then
     test $(du -a *.out.gz | sort -n | head -n 1 | cut -f 1) -gt 0
     find . -name "batch*.out.gz" -type f -print0 | xargs -0 -P $NTHREADS  -I{} gzip -t {}
 else
