@@ -1,5 +1,5 @@
 #!/bin/bash
-# submit-and-wait-for-results.sh: End-to-end ElasticBLAST blast search
+# submit-and-wait-for-results.sh: End-to-end ElasticBLAST blast search with timeout.
 #
 # Author: Christiam Camacho (camacho@ncbi.nlm.nih.gov)
 # Created: Fri Feb  5 13:52:36 EST 2021
@@ -8,14 +8,15 @@ SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 set -euo pipefail
 
 [ $# -gt 0 ] || { 
-    echo "Usage: $0 <ELASTIC_BLAST_CONFIG_FILE> [timeout in minutes]"; 
-    echo -e "\tdefault timeout is 5 minutes"
+    echo "Usage: $0 <ELASTIC_BLAST_CONFIG_FILE> [timeout in minutes] [ElasticBLAST logfile name]"; 
+    echo -e "\tdefault timeout is 500 minutes. ElasticBLAST search is DELETED after this time, even if not finished"
+    echo -e "\tdefault logfile name is elastic-blast.logs"
     exit 1; 
 }
 
 # All ElasticBLAST configuration settings are specified in the config file
 CFG=${1}
-timeout_minutes=${2:-5}
+timeout_minutes=${2:-500}
 logfile=${3:-"elastic-blast.log"}
 set +e
 elb_results=`printenv ELB_RESULTS`
