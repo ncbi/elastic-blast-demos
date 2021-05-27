@@ -9,7 +9,7 @@ set -euo pipefail
 
 [ $# -gt 0 ] || { 
     echo "Usage: $0 <ELASTIC_BLAST_CONFIG_FILE> [timeout in minutes] [ElasticBLAST logfile name]"; 
-    echo -e "\tdefault timeout is 500 minutes. After this expires, the ElasticBLAST search is DELETED"
+    echo -e "\tdefault timeout is 500 minutes. ElasticBLAST search is DELETED after this time, even if not finished"
     echo -e "\tdefault logfile name is elastic-blast.logs"
     exit 1; 
 }
