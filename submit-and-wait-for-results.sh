@@ -1,5 +1,5 @@
 #!/bin/bash
-# submit-and-wait-for-results.sh: End-to-end ElasticBLAST blast search.
+# submit-and-wait-for-results.sh: End-to-end ElasticBLAST blast search with timeout.
 #
 # Author: Christiam Camacho (camacho@ncbi.nlm.nih.gov)
 # Created: Fri Feb  5 13:52:36 EST 2021
