@@ -10,7 +10,7 @@ set -euo pipefail
 [ $# -gt 0 ] || { 
     echo "Usage: $0 <ELASTIC_BLAST_CONFIG_FILE> [timeout in minutes] [ElasticBLAST logfile name]"; 
     echo -e "\tdefault timeout is 500 minutes. ElasticBLAST search is DELETED after this time, even if not finished"
-    echo -e "\tdefault logfile name is elastic-blast.logs"
+    echo -e "\tdefault logfile name is elastic-blast.log"
     exit 1; 
 }
 
@@ -18,6 +18,7 @@ set -euo pipefail
 CFG=${1}
 timeout_minutes=${2:-500}
 logfile=${3:-"elastic-blast.log"}
+runsummary_output=${4:-elb-run-summary.json}
 set +e
 elb_results=`printenv ELB_RESULTS`
 set -e
@@ -54,6 +55,7 @@ TMP=`mktemp -t $(basename -s .sh $0)-XXXXXXX`
 trap "cleanup_resources_on_error; /bin/rm -f $TMP" INT QUIT HUP KILL ALRM ERR
 
 rm -fr *.out.gz
+elastic-blast --version
 elastic-blast submit --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
 
 attempts=0
@@ -70,7 +72,7 @@ while [ $attempts -lt $timeout_minutes ]; do
     #set -e
 done
 
-#elastic-blast run-summary --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
+elastic-blast run-summary --cfg $CFG --loglevel DEBUG --logfile $logfile -o $runsummary_output $DRY_RUN
 
 # Get results
 if ! grep -qi aws $CFG; then
