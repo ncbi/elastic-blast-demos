@@ -62,7 +62,7 @@ attempts=0
 [ ! -z "$DRY_RUN" ] || sleep 10    # Should be enough for the BLAST k8s jobs to get started
 
 while [ $attempts -lt $timeout_minutes ]; do
-    elastic-blast status --cfg $CFG $DRY_RUN | tee $TMP
+    elastic-blast status --cfg $CFG $DRY_RUN --logfile /dev/null | tee $TMP
     #set +e
     if grep '^Pending 0' $TMP && grep '^Running 0' $TMP; then
         break
