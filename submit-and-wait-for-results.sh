@@ -51,6 +51,32 @@ cleanup_resources_on_error() {
     exit 1;
 }
 
+check_results() {
+    db=`awk '/^db/ {print $NF}' $CFG`
+    if compgen -G "batch*$db.out.gz" >/dev/null ; then
+        test $(du -a *.out.gz | sort -n | head -n 1 | cut -f 1) -gt 0
+        # Test validity of compressed archives
+        find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 -P $NTHREADS  -I{} gzip -t {}
+        # If output is tabular, extract number of hits, check database
+        if grep -q 'outfmt 7' $logfile; then
+            searched_db=`find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 zcat | awk '/atabase:/ {print $NF}' | sort -u`
+            if [ "$db" != "$searched_db" ] ; then
+                echo "FATAL ERROR: Found mismatched results: configured $db, actual $searched_db"
+                exit 1
+            fi
+            find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 -P $NTHREADS zcat | \
+                awk 'BEGIN{t=0} /hits found/ {t+=$2} END{print "Total hits found", t}'
+            num_hsps=`find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 zcat | grep -v '^#' | wc -l`
+            echo "Number of HSPs found $num_hsps"
+        elif grep -q 'outfmt 6' $logfile; then
+            num_hsps=`find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 zcat | grep -v '^#' | wc -l`
+            echo "Number of HSPs found $num_hsps"
+        fi
+    else
+        echo "ElasticBLAST produced no results"
+    fi
+}
+
 TMP=`mktemp -t $(basename -s .sh $0)-XXXXXXX`
 trap "cleanup_resources_on_error; /bin/rm -f $TMP" INT QUIT HUP KILL ALRM ERR
 
@@ -63,13 +89,16 @@ attempts=0
 
 while [ $attempts -lt $timeout_minutes ]; do
     elastic-blast status --cfg $CFG $DRY_RUN --logfile /dev/null | tee $TMP
-    #set +e
-    if grep '^Pending 0' $TMP && grep '^Running 0' $TMP; then
-        break
-    fi
+    num_failed=`grep '^Failed ' $TMP | cut -f 2 -d ' '`
+    num_pending=`grep '^Pending ' $TMP | cut -f 2 -d ' '`
+    num_succeeded=`grep '^Succeeded ' $TMP | cut -f 2 -d ' '`
+    num_running=`grep '^Running ' $TMP | cut -f 2 -d ' '`
+    num_jobs=$(($num_failed + $num_pending + $num_succeeded + $num_running))
+
+    [ $((num_pending + num_running)) -eq 0 ] && break # No jobs left
+    [ $num_failed -gt 0 ] && break  # Failure detected
     attempts=$(($attempts+1))
     sleep 60
-    #set -e
 done
 
 elastic-blast run-summary --cfg $CFG --loglevel DEBUG --logfile $logfile -o $runsummary_output $DRY_RUN
@@ -82,10 +111,6 @@ else
 fi
 
 # Test results
-if compgen -G "batch*.out.gz" >/dev/null ; then
-    test $(du -a *.out.gz | sort -n | head -n 1 | cut -f 1) -gt 0
-    find . -name "batch*.out.gz" -type f -print0 | xargs -0 -P $NTHREADS  -I{} gzip -t {}
-else
-    echo "ElasticBLAST produced no results"
-fi
+check_results
+
 elastic-blast delete --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
