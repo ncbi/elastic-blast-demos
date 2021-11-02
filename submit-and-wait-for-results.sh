@@ -67,10 +67,10 @@ check_results() {
             find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 -P $NTHREADS zcat | \
                 awk 'BEGIN{t=0} /hits found/ {t+=$2} END{print "Total hits found", t}'
             num_hsps=`find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 zcat | grep -v '^#' | wc -l`
-            echo "Number of HSPs found $num_hsps"
+            echo "Number of high-scoring segment pairs (HSPs) found $num_hsps"
         elif grep -q 'outfmt 6' $logfile; then
             num_hsps=`find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 zcat | grep -v '^#' | wc -l`
-            echo "Number of HSPs found $num_hsps"
+            echo "Number of high-scoring segment pairs (HSPs) found $num_hsps"
         fi
     else
         echo "ElasticBLAST produced no results"
