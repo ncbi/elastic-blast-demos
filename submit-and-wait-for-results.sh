@@ -101,6 +101,10 @@ while [ $attempts -lt $timeout_minutes ]; do
     sleep 60
 done
 
+if [ $attempts -eq $timeout_minutes ]; then
+    echo "TIMEOUT of $timeout_minutes minutes reached"
+fi
+
 elastic-blast run-summary --cfg $CFG --loglevel DEBUG --logfile $logfile -o $runsummary_output $DRY_RUN
 
 # Get results
