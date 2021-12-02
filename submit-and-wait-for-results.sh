@@ -79,6 +79,9 @@ if ! grep -qi aws $CFG; then
     gsutil -qm cp ${elb_results}/*.out.gz .
 else
     aws s3 cp ${elb_results}/ . --recursive --exclude '*' --include "*.out.gz" --exclude '*/*' --only-show-errors
+    if ! aws iam get-role --role-name ncbi-elasticblast-janitor-role  >&/dev/null; then
+        elastic-blast delete --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
+    fi
 fi
 
 # Test results
@@ -88,4 +91,3 @@ if compgen -G "batch*.out.gz" >/dev/null ; then
 else
     echo "ElasticBLAST produced no results"
 fi
-elastic-blast delete --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
