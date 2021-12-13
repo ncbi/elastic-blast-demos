@@ -67,6 +67,10 @@ while [ $attempts -lt $timeout_minutes ]; do
     if grep '^Pending 0' $TMP && grep '^Running 0' $TMP; then
         break
     fi
+    if grep '^Your ElasticBLAST search succeeded' $TMP || grep '^Your ElasticBLAST search failed' $TMP ; then
+	break
+    fi
+
     attempts=$(($attempts+1))
     sleep 60
     #set -e
