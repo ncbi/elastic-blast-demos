@@ -66,11 +66,11 @@ check_results() {
             fi
             find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 -P $NTHREADS zcat | \
                 awk 'BEGIN{t=0} /hits found/ {t+=$2} END{print "Total hits found", t}'
-            num_hsps=`find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 zcat | grep -v '^#' | wc -l`
-            echo "Number of high-scoring segment pairs (HSPs) found $num_hsps"
+            num_hits=`find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 zcat | grep -v '^#' | wc -l`
+            echo "Number of database hits found $num_hits"
         elif grep -q 'outfmt 6' $logfile; then
-            num_hsps=`find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 zcat | grep -v '^#' | wc -l`
-            echo "Number of high-scoring segment pairs (HSPs) found $num_hsps"
+            num_hits=`find . -maxdepth 1 -name "batch*$db.out.gz" -type f -print0 | xargs -0 zcat | grep -v '^#' | wc -l`
+            echo "Number of database hits found $num_hits"
         fi
     else
         echo "ElasticBLAST produced no results"
@@ -94,7 +94,7 @@ while [ $attempts -lt $timeout_minutes ]; do
         break
     fi
     if grep '^Your ElasticBLAST search succeeded' $TMP || grep '^Your ElasticBLAST search failed' $TMP ; then
-	break
+        break
     fi
 
     attempts=$(($attempts+1))
