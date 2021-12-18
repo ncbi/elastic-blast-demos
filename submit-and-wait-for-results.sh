@@ -89,21 +89,23 @@ attempts=0
 
 while [ $attempts -lt $timeout_minutes ]; do
     elastic-blast status --cfg $CFG $DRY_RUN --logfile /dev/null | tee $TMP
-    num_failed=`grep '^Failed ' $TMP | cut -f 2 -d ' '`
-    num_pending=`grep '^Pending ' $TMP | cut -f 2 -d ' '`
-    num_succeeded=`grep '^Succeeded ' $TMP | cut -f 2 -d ' '`
-    num_running=`grep '^Running ' $TMP | cut -f 2 -d ' '`
-    num_jobs=$(($num_failed + $num_pending + $num_succeeded + $num_running))
+    #set +e
+    if grep '^Pending 0' $TMP && grep '^Running 0' $TMP; then
+        break
+    fi
+    if grep '^Your ElasticBLAST search succeeded' $TMP || grep '^Your ElasticBLAST search failed' $TMP ; then
+	break
+    fi
 
-    [ $((num_pending + num_running)) -eq 0 ] && break # No jobs left
-    [ $num_failed -gt 0 ] && break  # Failure detected
     attempts=$(($attempts+1))
     sleep 60
 done
 
-if [ $attempts -eq $timeout_minutes ]; then
-    echo "TIMEOUT of $timeout_minutes minutes reached"
-fi
+if [ $attempts -ge $timeout_minutes ]; do
+    echo "ElasticBLAST search has timed out"
+    elastic-blast delete --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
+    exit 1
+done
 
 elastic-blast run-summary --cfg $CFG --loglevel DEBUG --logfile $logfile -o $runsummary_output $DRY_RUN
 
@@ -112,9 +114,11 @@ if ! grep -qi aws $CFG; then
     gsutil -qm cp ${elb_results}/*.out.gz .
 else
     aws s3 cp ${elb_results}/ . --recursive --exclude '*' --include "*.out.gz" --exclude '*/*' --only-show-errors
+    if ! aws iam get-role --role-name ncbi-elasticblast-janitor-role  >&/dev/null; then
+        elastic-blast delete --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
+    fi
 fi
 
 # Test results
 check_results
 
-elastic-blast delete --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
