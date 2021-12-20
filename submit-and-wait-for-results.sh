@@ -101,11 +101,11 @@ while [ $attempts -lt $timeout_minutes ]; do
     sleep 60
 done
 
-if [ $attempts -ge $timeout_minutes ]; do
+if [ $attempts -ge $timeout_minutes ]; then
     echo "ElasticBLAST search has timed out"
     elastic-blast delete --cfg $CFG --loglevel DEBUG --logfile $logfile $DRY_RUN
     exit 1
-done
+fi
 
 elastic-blast run-summary --cfg $CFG --loglevel DEBUG --logfile $logfile -o $runsummary_output $DRY_RUN
 
