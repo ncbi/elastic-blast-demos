@@ -5,7 +5,7 @@
 # Created: Fri Feb  5 13:52:36 EST 2021
 
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-set -euo pipefail
+set -uo pipefail
 
 [ $# -gt 0 ] || { 
     echo "Usage: $0 <ELASTIC_BLAST_CONFIG_FILE> [timeout in minutes] [ElasticBLAST logfile name]"; 
@@ -88,13 +88,10 @@ attempts=0
 [ ! -z "$DRY_RUN" ] || sleep 10    # Should be enough for the BLAST k8s jobs to get started
 
 while [ $attempts -lt $timeout_minutes ]; do
-    elastic-blast status --cfg $CFG $DRY_RUN --logfile /dev/null | tee $TMP
-    #set +e
-    if grep '^Pending 0' $TMP && grep '^Running 0' $TMP; then
-        break
-    fi
-    if grep '^Your ElasticBLAST search succeeded' $TMP || grep '^Your ElasticBLAST search failed' $TMP ; then
-        break
+    exit_code=0
+    elastic-blast status --cfg $CFG $DRY_RUN --exit-code --logfile /dev/null || exit_code=$?
+    if [ $exit_code -eq 0 ] || [ $exit_code -eq 1 ] ; then
+	break
     fi
 
     attempts=$(($attempts+1))
