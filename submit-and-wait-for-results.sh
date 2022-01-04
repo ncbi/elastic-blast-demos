@@ -52,7 +52,7 @@ cleanup_resources_on_error() {
 }
 
 check_results() {
-    db=`awk '/^db/ {print $NF}' $CFG`
+    db=`awk '/^db/ {n=split($NF, a, "/"); print a[n];}' $CFG`
     if compgen -G "batch*$db.out.gz" >/dev/null ; then
         test $(du -a *.out.gz | sort -n | head -n 1 | cut -f 1) -gt 0
         # Test validity of compressed archives
