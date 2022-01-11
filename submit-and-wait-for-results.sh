@@ -90,8 +90,8 @@ attempts=0
 while [ $attempts -lt $timeout_minutes ]; do
     exit_code=0
     elastic-blast status --cfg $CFG $DRY_RUN --exit-code --logfile /dev/null || exit_code=$?
-    if [ $exit_code -eq 0 ] || [ $exit_code -eq 1 ] ; then
-	break
+    if [ $exit_code -eq 0 ] || [ $exit_code -eq 1 ] || [ $exit_code -ge 6 ] ; then
+        break
     fi
 
     attempts=$(($attempts+1))
